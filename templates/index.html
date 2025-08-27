@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Estudiantes | Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">📚</div>
+                    <span class="logo-text">StudentsHub</span>
+                </div>
+            </div>
+            
+            <div class="nav-menu">
+                <div class="nav-item active" data-section="dashboard">
+                    <div class="nav-icon">📊</div>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-section="students">
+                    <div class="nav-icon">👥</div>
+                    <span>Estudiantes</span>
+                </div>
+                <div class="nav-item" data-section="reports">
+                    <div class="nav-icon">📈</div>
+                    <span>Reportes</span>
+                </div>
+                <div class="nav-item" data-section="settings">
+                    <div class="nav-icon">⚙️</div>
+                    <span>Configuración</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <span class="user-name">Admin User</span>
+                        <span class="user-role">Administrador</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 class="page-title">Control de Estudiantes</h1>
+                    <p class="page-subtitle">Gestión integral de estudiantes universitarios</p>
+                </div>
+                
+                <div class="header-right">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Buscar estudiantes..." class="search-input">
+                        <div class="search-icon">🔍</div>
+                    </div>
+                    
+                    <button class="btn-primary" id="addStudentBtn">
+                        <span class="btn-icon">➕</span>
+                        Agregar Estudiante
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard-section" class="content-section active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon total">👥</div>
+                            <div class="stat-trend up">↗️ +12%</div>
+                        </div>
+                        <div class="stat-number" id="totalStudents">{{ estadisticas.total_estudiantes|default:0 }}</div>
+                        <div class="stat-label">Total Estudiantes</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon active">✅</div>
+                            <div class="stat-trend up">↗️ +8%</div>
+                        </div>
+                        <div class="stat-number" id="activeStudents">{{ estadisticas.estudiantes_activos|default:0 }}</div>
+                        <div class="stat-label">Estudiantes Activos</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon average">📊</div>
+                            <div class="stat-trend up">↗️ +0.3</div>
+                        </div>
+                        <div class="stat-number" id="averageGrade">{{ estadisticas.promedio_general|default:0 }}</div>
+                        <div class="stat-label">Promedio General</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div class="stat-icon careers">🎓</div>
+                            <div class="stat-trend stable">→ 0%</div>
+                        </div>
+                        <div class="stat-number" id="totalCareers">{{ estadisticas.carreras_populares|length|default:0 }}</div>
+                        <div class="stat-label">Carreras Activas</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <h3>Acciones Rápidas</h3>
+                    <div class="actions-grid">
+                        <button class="action-btn" onclick="showSection('students')">
+                            <div class="action-icon">👥</div>
+                            <span>Ver Estudiantes</span>
+                        </button>
+                        <button class="action-btn" id="generateReportBtn">
+                            <div class="action-icon">📊</div>
+                            <span>Generar Reporte</span>
+                        </button>
+                        <button class="action-btn" onclick="showSection('settings')">
+                            <div class="action-icon">⚙️</div>
+                            <span>Configuración</span>
+                        </button>
+                        <button class="action-btn" onclick="refreshData()">
+                            <div class="action-icon">🔄</div>
+                            <span>Actualizar Datos</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Students -->
+                <div class="recent-students">
+                    <h3>Estudiantes Recientes</h3>
+                    <div class="students-preview" id="recentStudentsPreview">
+                        {% for estudiante in estudiantes|slice:":5" %}
+                        <div class="student-preview-card">
+                            <div class="student-avatar">{{ estudiante.nombre.0 }}{{ estudiante.apellido_paterno.0 }}</div>
+                            <div class="student-info">
+                                <div class="student-name">{{ estudiante.nombre_completo|default:estudiante.nombre }}</div>
+                                <div class="student-details">{{ estudiante.carrera }} • Ciclo {{ estudiante.ciclo }}</div>
+                            </div>
+                            <div class="student-status active">Activo</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Students Section -->
+            <section id="students-section" class="content-section">
+                <div class="section-header">
+                    <h2>Gestión de Estudiantes</h2>
+                    <div class="section-actions">
+                        <select id="filterCarrera" class="filter-select">
+                            <option value="">Todas las carreras</option>
+                        </select>
+                        <select id="filterCiclo" class="filter-select">
+                            <option value="">Todos los ciclos</option>
+                            <option value="1">1° Ciclo</option>
+                            <option value="2">2° Ciclo</option>
+                            <option value="3">3° Ciclo</option>
+                            <option value="4">4° Ciclo</option>
+                            <option value="5">5° Ciclo</option>
+                            <option value="6">6° Ciclo</option>
+                            <option value="7">7° Ciclo</option>
+                            <option value="8">8° Ciclo</option>
+                            <option value="9">9° Ciclo</option>
+                            <option value="10">10° Ciclo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="students-table-container">
+                    <table class="students-table" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>Carrera</th>
+                                <th>Ciclo</th>
+                                <th>Correo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports-section" class="content-section">
+                <div class="section-header">
+                    <h2>Reportes y Estadísticas</h2>
+                    <button class="btn-secondary" onclick="exportData()">
+                        <span class="btn-icon">📥</span>
+                        Exportar Datos
+                    </button>
+                </div>
+
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <h4>Distribución por Carrera</h4>
+                        <div class="chart-container" id="careerChart">
+                            <!-- Chart will be generated here -->
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <h4>Estudiantes por Sede</h4>
+                        <div class="chart-container" id="campusChart">
+                            <!-- Chart will be generated here -->
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <h4>Rendimiento Académico</h4>
+                        <div class="chart-container" id="performanceChart">
+                            <!-- Chart will be generated here -->
+                        </div>
+                    </div>
+
+                    <div class="report-card">
+                        <h4>Tendencias por Mes</h4>
+                        <div class="chart-container" id="trendChart">
+                            <!-- Chart will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings-section" class="content-section">
+                <div class="section-header">
+                    <h2>Configuración del Sistema</h2>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="setting-group">
+                        <h4>Apariencia</h4>
+                        <div class="setting-item">
+                            <label>Modo Oscuro</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="darkModeToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Base de Datos</h4>
+                        <div class="setting-item">
+                            <label>Estado de Conexión</label>
+                            <span class="status-indicator online">Conectado</span>
+                        </div>
+                        <div class="setting-item">
+                            <label>Última Sincronización</label>
+                            <span class="sync-time" id="lastSync">Hace 2 minutos</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Notificaciones</h4>
+                        <div class="setting-item">
+                            <label>Alertas de Sistema</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="alertsToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Student Modal -->
+    <div id="studentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Estudiante</h3>
+                <button class="modal-close" id="closeModal">✕</button>
+            </div>
+            
+            <form id="studentForm" class="student-form">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombre">Nombre *</label>
+                        <input type="text" id="nombre" name="nombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="apellido_paterno">Apellido Paterno *</label>
+                        <input type="text" id="apellido_paterno" name="apellido_paterno" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="apellido_materno">Apellido Materno</label>
+                        <input type="text" id="apellido_materno" name="apellido_materno">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="correo">Correo Electrónico *</label>
+                        <input type="email" id="correo" name="correo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="carrera">Carrera *</label>
+                        <select id="carrera" name="carrera" required>
+                            <option value="">Seleccionar carrera</option>
+                            <option value="Ingeniería de Sistemas e Informática">Ingeniería de Sistemas e Informática</option>
+                            <option value="Ingeniería Industrial">Ingeniería Industrial</option>
+                            <option value="Administración de Empresas">Administración de Empresas</option>
+                            <option value="Contabilidad">Contabilidad</option>
+                            <option value="Marketing y Publicidad">Marketing y Publicidad</option>
+                            <option value="Psicología">Psicología</option>
+                            <option value="Derecho">Derecho</option>
+                            <option value="Arquitectura">Arquitectura</option>
+                            <option value="Comunicaciones">Comunicaciones</option>
+                            <option value="Ingeniería Civil">Ingeniería Civil</option>
+                            <option value="Enfermería">Enfermería</option>
+                            <option value="Turismo y Hotelería">Turismo y Hotelería</option>
+                            <option value="Nutrición">Nutrición</option>
+                            <option value="Ingeniería Electrónica">Ingeniería Electrónica</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ciclo">Ciclo *</label>
+                        <select id="ciclo" name="ciclo" required>
+                            <option value="">Seleccionar ciclo</option>
+                            <option value="1">1° Ciclo</option>
+                            <option value="2">2° Ciclo</option>
+                            <option value="3">3° Ciclo</option>
+                            <option value="4">4° Ciclo</option>
+                            <option value="5">5° Ciclo</option>
+                            <option value="6">6° Ciclo</option>
+                            <option value="7">7° Ciclo</option>
+                            <option value="8">8° Ciclo</option>
+                            <option value="9">9° Ciclo</option>
+                            <option value="10">10° Ciclo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edad">Edad</label>
+                        <input type="number" id="edad" name="edad" min="16" max="60" value="18">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sede">Sede</label>
+                        <select id="sede" name="sede">
+                            <option value="Lima Centro">Lima Centro</option>
+                            <option value="San Juan de Lurigancho">San Juan de Lurigancho</option>
+                            <option value="Callao">Callao</option>
+                            <option value="Villa El Salvador">Villa El Salvador</option>
+                            <option value="Los Olivos">Los Olivos</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="turno">Turno</label>
+                        <select id="turno" name="turno">
+                            <option value="diurno">Diurno</option>
+                            <option value="nocturno">Nocturno</option>
+                            <option value="virtual">Virtual</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="estado_estudiante">Estado</label>
+                        <select id="estado_estudiante" name="estado_estudiante">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                            <option value="graduado">Graduado</option>
+                            <option value="retirado">Retirado</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn-primary" id="submitBtn">
+                        <span class="btn-loading" style="display: none;">⏳</span>
+                        <span class="btn-text">Guardar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <span class="toast-icon">✅</span>
+            <span class="toast-message">Operación exitosa</span>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
